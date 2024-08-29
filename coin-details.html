@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/script.js" defer></script>
+    <style>
+        .coin-details {
+            margin-top: 50px;
+        }
+        .coin-details img {
+            width: 100px;
+        }
+        .coin-details h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .coin-details p {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container mt-5">
+        <!-- Coin Details and Description -->
+        <div class="row">
+            <div class="col-12">
+                <h3 v-if="coin.name && coin.symbol">{{ coin.name }}</h3>
+            </div>
+        </div>
+
+        <!-- Historical Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <canvas id="historical-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Coin Data -->
+        <div class="row">
+            <div class="col-12">
+                <div class="row mb-2" v-if="coin.image && coin.name && coin.symbol">
+                    <div class="col-4 fw-bold">
+                        <img :src="coin.image.large" alt="Coin Icon" class="me-2" style="width: 50px;">
+                        {{ coin.name }} ({{ coin.symbol.toUpperCase() }})
+                    </div>
+                    <div class="col-8 pt-4">
+                       ${{ coin.market_data?.current_price?.usd || 'N/A' }}
+                    </div>
+                </div>
+                <div class="row mb-2" v-if="coin.market_data">
+                    <div class="col-4 fw-bold">Crypto Market Rank:</div>
+                    <div class="col-8">Rank #{{ coin.rank }}</div>
+                </div>
+                <div class="row mb-2" v-if="coin.market_data">
+                    <div class="col-4 fw-bold">Market Cap:</div>
+                    <div class="col-8">$ {{ coin.market_data.market_cap.usd | formatCurrency }}</div>
+                </div>
+                <div class="row mb-2" v-if="coin.market_data">
+                    <div class="col-4 fw-bold">Circulating Supply:</div>
+                    <div class="col-8">$ {{ coin.market_data.circulating_supply | formatNumber }}</div>
+                </div>
+                <div class="row mb-2" v-if="coin.market_data">
+                    <div class="col-4 fw-bold">24 Hour High:</div>
+                    <div class="col-8"> ${{ coin.market_data.high_24h.usd | formatCurrency }}</div>
+                </div>
+                <div class="row mb-2" v-if="coin.market_data">
+                    <div class="col-4 fw-bold">24 Hour Low:</div>
+                    <div class="col-8"> ${{ coin.market_data.low_24h.usd | formatCurrency }}</div>
+                </div>
+            </div>
+        </div><br><br>
+        <div class="">
+            <h3>Description</h3>
+            <p></p><span v-html="coin.description?.en || 'N/A'"></span></p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <button @click="addToFavorites" class="btn btn-outline-primary btn-lg d-block"><span data-feather="star"></span> Add to favorites</button>
+            </div>
+        </div>
+    </div>
+    <br><br>
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+
+        const axios = window.axios;
+
+        const app = createApp({
+            data() {
+                return {
+                    coin: {}
+                };
+            },
+            methods: {
+                async fetchCoinDetails() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const coinId = urlParams.get('id') || 'bitcoin';
+
+                    try {
+                        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${coinId}`, {
+                            params: {
+                                localization: false,
+                                tickers: false,
+                                market_data: true,
+                                community_data: false,
+                                developer_data: false,
+                                sparkline: true
+                            }
+                        });
+
+                        if (response.status === 200) {
+                            this.coin = response.data;
+
+                            if (this.coin.market_data && this.coin.market_data.sparkline_7d) {
+                                const prices = this.coin.market_data.sparkline_7d.price.slice(-5);
+                                const timestamps = this.coin.market_data.sparkline_7d.price.slice(-5).map((_, i) => {
+                                    const date = new Date();
+                                    date.setDate(date.getDate() - (4 - i)); 
+                                    return date.toLocaleDateString('fr-FR', { weekday: 'long' });
+                                });
+
+                                this.createChart(timestamps, prices);
+                            }
+                        } else {
+                            console.error('Error fetching data:', response.status);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching coin details:', error);
+                    }
+                },
+                createChart(labels, data) {
+                    const ctx = document.getElementById('historical-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Price in USD',
+                                data: data,
+                                borderColor: '#00C234',
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: ''
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: ''
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                addToFavorites() {
+                }
+            },
+            mounted() {
+                this.fetchCoinDetails();
+            },
+            filters: {
+                formatCurrency(value) {
+                    return value ? `$${value.toLocaleString()}` : 'N/A';
+                },
+                formatNumber(value) {
+                    return value ? value.toLocaleString() : 'N/A';
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>  
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        feather.replace();
+    </script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+</html>
