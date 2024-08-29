@@ -328,3 +328,13 @@ a{
 .text-white {
   color: white;
 }
+
+ 
+ @media (max-width: 767.98px) {
+  .row-gap {
+    gap: 16px; 
+    display: flex;
+    justify-content: center;
+  }
+}
+
