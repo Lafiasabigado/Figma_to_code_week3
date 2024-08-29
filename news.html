@@ -193,7 +193,7 @@
                     <p class="card-text m-2">
                         <small class="text-muted">News-{{ formatDate(article.publishedAt) }}</small>
                     </p>
-                    <img :src="article.urlToImage" class="card-img-top" :alt="article.title" @error="imgError">
+                    <img :src="article.image" class="card-img-top" :alt="article.title" @error="imgError">
                     <div class="card-body d-flex flex-column">
                       <h6 class="card-title"><i> {{ article.title }} </i></h6>
                       <p class="card-text bg-dark-grey">{{  article.description }}</p>
@@ -231,12 +231,11 @@
             },
               methods: {
                   fetchArticles() {
-                  axios.get('https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=63326df21d234d3fad79a2c6b5fe8b14')
+                  axios.get('https://gnews.io/api/v4/search?q=example&apikey=0733e3fd2d5970946729562ff7df8753')
                   
                  .then(response => {
                     this.articles = response.data.articles.map(article => ({
                         ...article,
-                        urlToimage : article.urlToimage,
                         likes: 0,
                         comments: [],
                         showComments: false,
