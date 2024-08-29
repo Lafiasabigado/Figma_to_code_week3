@@ -231,7 +231,7 @@
             },
               methods: {
                   fetchArticles() {
-                  axios.get('https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=63326df21d234d3fad79a2c6b5fe8b14')
+                  axios.get('https://newsapi.org/v2/everything?q=tesla&from=2024-07-29&sortBy=publishedAt&apiKey=63326df21d234d3fad79a2c6b5fe8b14')
                  .then(response => {
                     this.articles = response.data.articles.map(article => ({
                         ...article,
