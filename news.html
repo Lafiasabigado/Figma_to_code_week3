@@ -218,64 +218,60 @@
           </div>
       </main>  
     
-      <script type="module">
-        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
-        const axios = window.axios;
-      
-        createApp({
-          data() {
-            return {
-              articles: [],
-              newComment: ''
-            };
-          },
-          methods: {
-            fetchArticles() {
-              axios.get('https://newsapi.org/v2/top-headlines', {
-                params: {
-                  sources: 'techcrunch',
-                  apiKey: '63326df21d234d3fad79a2c6b5fe8b14'
-                }
-              })
-              .then(response => {
-                this.articles = response.data.articles.map(article => ({
-                  ...article,
-                  urlToImage: article.urlToImage,
-                  likes: 0,
-                  comments: [],
-                  showComments: false,
-                }));
-              })
-              .catch(error => {
-                console.error("There was an error fetching the news articles:", error);
-              });
+        <script type="module">
+          import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+          const axios = window.axios;
+
+            createApp({
+            data() {
+                return {
+                articles: [],
+                newComment: ''
+                };
             },
-      
-            likeArticle(index) {
-              this.articles[index].likes += this.articles[index].likes === 0 ? 1 : -1;
-            },
-      
-            addComment(index) {
-              if (this.newComment.trim() !== '') {
-                this.articles[index].comments.push(this.newComment);
-                this.newComment = '';
-              }
-            },
-      
-            toggleComments(index) {
-              this.articles[index].showComments = !this.articles[index].showComments;
-            },
-      
-            formatDate(date) {
-              return new Date(date).toLocaleString();
-            },
-          },
-          mounted() {
-            this.fetchArticles();
-          }
-        }).mount('#app');
-      </script>
-      
+              methods: {
+                  fetchArticles() {
+                  axios.get('https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=63326df21d234d3fad79a2c6b5fe8b14')
+                 .then(response => {
+                    this.articles = response.data.articles.map(article => ({
+                        ...article,
+                        urlToimage : article.urlToimage,
+                        likes: 0,
+                        comments: [],
+                        showComments: false,
+                    }));
+            })
+                    .catch(error => {
+                    console.error("There was an error fetching the news articles:", error);
+                    });
+        },
+
+    likeArticle(index) {
+      this.articles[index].likes = !this.articles[index].likes;
+      this.articles[index].likes += 0;
+    },
+
+    addComment(index) {
+      if (this.newComment.trim() !== '') {
+        this.articles[index].comments.push(this.newComment);
+        this.newComment = '';
+      }
+    },
+    
+    toggleComments(index) {
+      this.articles[index].showComments = !this.articles[index].showComments;
+    },
+
+    formatDate(date) {
+      return new Date(date).toLocaleString();
+    },
+  },
+  mounted() {
+    this.fetchArticles();
+  }
+}).mount('#app');
+
+    </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>  
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://unpkg.com/feather-icons"></script>
